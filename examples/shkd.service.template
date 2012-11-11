@@ -1,0 +1,9 @@
+[Unit]
+Description=Simple HotKey Daemon
+
+[Service]
+Type=simple
+ExecStart=shkd INPUT_DEVICE
+
+[Install]
+WantedBy=multi-user.target

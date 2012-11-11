@@ -18,6 +18,17 @@
 
 ## Configuration File Format
 
+Example:
+
+    brightnessup
+        foo +1
+
+    volumedown
+        bar -1
+
+    meta + alt + shift + ctrl + zenkakuhankaku
+        baz --quux /foo/bar
+
 Each line of the configuration file is interpreted as so:
 
 - If it starts with `#`, it is ignored.

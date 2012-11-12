@@ -8,7 +8,7 @@ LDFLAGS = $(LIBS)
 PREFIX    ?= /usr/local
 BINPREFIX = $(PREFIX)/bin
 SYSDPREFIX = /usr/lib/systemd/system
-INPUT_DEVICE = $(shell find /dev/input/by-id/ -name '*-kbd' | head -n 1)
+INPUT_DEVICE = $(shell find /dev/input/by-{id,path} -name '*-kbd' | head -n 1)
 
 SRC = shkd.c keycodes.c helpers.c
 OBJ = $(SRC:.c=.o)

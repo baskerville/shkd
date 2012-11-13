@@ -45,7 +45,7 @@ install:
 	@echo "installing configuration file to $(DESTDIR)/etc"
 	@install -D -m 644 examples/shkdrc $(DESTDIR)/etc/shkdrc
 	@echo "installing systemd service file to $(DESTDIR)$(SYSDPREFIX)"
-	@sed "s:INPUT_DEVICE:$(INPUT_DEVICE):;s:BIN_PREFIX:$(BINPREFIX):" examples/shkd.service.template > examples/shkd.service
+	@sed "s#INPUT_DEVICE#$(INPUT_DEVICE)#;s#BIN_PREFIX#$(BINPREFIX)#" examples/shkd.service.template > examples/shkd.service
 	@install -D -m 644 examples/shkd.service $(DESTDIR)$(SYSDPREFIX)/shkd.service
 
 uninstall:

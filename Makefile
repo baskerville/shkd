@@ -7,6 +7,7 @@ LDFLAGS = $(LIBS)
 
 PREFIX    ?= /usr/local
 BINPREFIX = $(PREFIX)/bin
+MANPREFIX = $(PREFIX)/share/man
 SYSDPREFIX = /usr/lib/systemd/system
 INPUT_DEVICE = $(shell find /dev/input/by-{id,path} -name '*-kbd' | head -n 1)
 
@@ -42,6 +43,8 @@ clean:
 install:
 	@echo "installing executable files to $(DESTDIR)$(BINPREFIX)"
 	@install -D -m 755 shkd $(DESTDIR)$(BINPREFIX)/shkd
+	@echo "installing manual page to $(DESTDIR)$(MANPREFIX)/man1"
+	@install -D -m 644 shkd.1 $(DESTDIR)$(MANPREFIX)/man1/shkd.1
 	@echo "installing configuration file to $(DESTDIR)/etc"
 	@install -D -m 644 examples/shkdrc $(DESTDIR)/etc/shkdrc
 	@echo "installing systemd service file to $(DESTDIR)$(SYSDPREFIX)"
@@ -51,6 +54,8 @@ install:
 uninstall:
 	@echo "removing executable files from $(DESTDIR)$(BINPREFIX)"
 	@rm -f $(DESTDIR)$(BINPREFIX)/shkd
+	@echo "removing manual page from $(DESTDIR)$(MANPREFIX)/man1"
+	@rm -f $(DESTDIR)$(MANPREFIX)/man1/shkd.1
 	@echo "removing configuration file from $(DESTDIR)/etc"
 	@rm -f $(DESTDIR)/etc/shkdrc
 	@echo "removing systemd service file from $(DESTDIR)$(SYSDPREFIX)"

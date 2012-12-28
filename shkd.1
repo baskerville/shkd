@@ -2,7 +2,9 @@
 .SH NAME
 Simple HotKey Daemon.
 .SH SYNOPSIS
-.BI shkd " [OPTIONS] INPUT_DEVICE"
+.SY shkd
+.RI [ OPTIONS ] " INPUT_DEVICE"
+.YS
 .SH DESCRIPTION
 .PP
 shkd is a simple hotkey daemon for Linux.
@@ -25,13 +27,18 @@ Read configuration from the given file instead of the default (/etc/shkdrc).
 .PP
 Each line of the configuration file is interpreted as so:
 .IP \(bu 2
-If it starts with \fB\fC#\fR, it is ignored.
+If it starts with
+.IR # ,
+it is ignored.
 .IP \(bu 2
-If it starts with one or more white space characters (cf. \fB\fCman 3 isspace\fR) it is read as a command.
+If it starts with one or more white space characters (as defined by 
+.BR isspace " (3))"
+it is read as a command.
 .IP \(bu 2
-Otherwise, it is parsed as a hotkey: each key name is separated by spaces or \fB\fC+\fR characters.
-.SS
-Example:
+Otherwise, it is parsed as a hotkey: each key name is separated by spaces or
+.IR +
+characters.
+.SS Example:
 .EX
 brightnessup
     foo +1
@@ -41,9 +48,12 @@ meta + alt + shift + ctrl + zenkakuhankaku
     baz --quux /foo/bar
 .EE
 .SH AUTHOR
-Bastien Dejean <baskerville at lavabit.com>
-.SH HOMEPAGE
-.TP
-https://github.com/baskerville/shkd
+.MT baskerville@lavabit.com
+Bastien Dejean
+.ME
+.SH LINKS
+.UR https://github.com/baskerville/shkd
+Homepage
+.UE
 .SH SEE ALSO
 .BR XBindKeys (1).

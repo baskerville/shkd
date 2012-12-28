@@ -1,0 +1,49 @@
+.TH SHKD 1 shkd
+.SH NAME
+Simple HotKey Daemon.
+.SH SYNOPSIS
+.BI shkd " [OPTIONS] INPUT_DEVICE"
+.SH DESCRIPTION
+.PP
+shkd is a simple hotkey daemon for Linux.
+.PP
+It works in the console and in X.
+.SH OPTIONS
+.TP
+.BI -h
+Show the synopsis and quit.
+.TP
+.BI -v
+Show the version and quit.
+.TP
+.BI -t
+Output the name and the keycode of the incoming key press events (press 'esc' to quit).
+.TP
+.BI -c " CONFIG_FILE"
+Read configuration from the given file instead of the default (/etc/shkdrc).
+.SH CONFIGURATION FILE FORMAT
+.PP
+Each line of the configuration file is interpreted as so:
+.IP \(bu 2
+If it starts with \fB\fC#\fR, it is ignored.
+.IP \(bu 2
+If it starts with one or more white space characters (cf. \fB\fCman 3 isspace\fR) it is read as a command.
+.IP \(bu 2
+Otherwise, it is parsed as a hotkey: each key name is separated by spaces or \fB\fC+\fR characters.
+.SS
+Example:
+.EX
+brightnessup
+    foo +1
+volumedown
+    bar -1
+meta + alt + shift + ctrl + zenkakuhankaku
+    baz --quux /foo/bar
+.EE
+.SH AUTHOR
+Bastien Dejean <baskerville at lavabit.com>
+.SH HOMEPAGE
+.TP
+https://github.com/baskerville/shkd
+.SH SEE ALSO
+.BR XBindKeys (1).

@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/select.h>
 #include <fcntl.h>
 #include <ctype.h>
 #include <getopt.h>
@@ -23,6 +24,7 @@ void init(void)
 {
     config_file = NULL;
     hotkeys = NULL;
+    modmask = 0;
     running = true;
     for (unsigned int i = 0; i < LENGTH(care_for); i++)
         care_for[i] = false;
@@ -89,9 +91,45 @@ void load_config(void)
     fclose(cfg);
 }
 
+void handle_event(struct input_event *ev)
+{
+    if (ev->type == EV_KEY) {
+        if (test_mode) {
+            if (ev->value == VA_PRESS)
+            {
+                if (reg_key_from_keycode(ev->code, &rk))
+                    printf("%s (%u)\n", rk.name, rk.keycode);
+                else if (mod_key_from_keycode(ev->code, &mk))
+                    printf("%s (%u)\n", mk.name, mk.keycode);
+                else
+                    printf("? (%u)\n", ev->code);
+                if (ev->code == KEY_ESC)
+                    running = false;
+            }
+            return;
+        }
+
+        if (!care_for[ev->code])
+            return;
+
+        if (ev->value == VA_PRESS || ev->value == VA_REPEAT) {
+            hotkey_t *hk = find_hotkey(modmask, ev->code);
+            if (hk != NULL) {
+                if (system(hk->command) == -1)
+                    warn("failed to execute command: %s\n", hk->command);
+            } else if (ev->value == VA_PRESS && mod_key_from_keycode(ev->code, &mk)) {
+                modmask |= mk.modval;
+            }
+        } else if (ev->value == VA_RELEASE) {
+            if (mod_key_from_keycode(ev->code, &mk))
+                modmask &= ~mk.modval;
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
-    bool test_mode = false;
+    test_mode = false;
     char opt;
 
     while ((opt = getopt(argc, argv, "vhtc:")) != -1) {
@@ -116,12 +154,19 @@ int main(int argc, char *argv[])
     if (optind == argc)
         err("required argument missing\n");
 
-    struct input_event ev;
-    char *input_device = argv[optind];
+    unsigned int num = argc - optind;
+    char **input_device = argv + optind;
+    int fd[num], sel_fd, max_fd = 0;
 
-    int fd = open(input_device, O_RDONLY);
-    if (fd == -1)
-        err("can't open input device\n");
+    for (unsigned int i = 0; i < num; i++) {
+        fd[i] = open(input_device[i], O_RDONLY);
+        if (fd[i] == -1)
+            err("can't open input device %s\n", input_device[i]);
+        else if (fd[i] > max_fd)
+            max_fd = fd[i];
+    }
+
+    sel_fd = max_fd + 1;
 
     signal(SIGINT, stop);
     signal(SIGHUP, stop);
@@ -131,47 +176,28 @@ int main(int argc, char *argv[])
     if (!test_mode)
         load_config();
 
-    unsigned char modmask = 0;
-    hotkey_t *hk;
-    reg_key_t k;
-    mod_key_t m;
+    fd_set descriptors;
+    struct input_event ev;
 
-    while (running && read(fd, &ev, sizeof(struct input_event)) > 0) {
-        if (ev.type == EV_KEY) {
-            if (test_mode) {
-                if (ev.value == VA_PRESS)
-                {
-                    if (reg_key_from_keycode(ev.code, &k))
-                        printf("%s (%u)\n", k.name, k.keycode);
-                    else if (mod_key_from_keycode(ev.code, &m))
-                        printf("%s (%u)\n", m.name, m.keycode);
+    while (running) {
+        FD_ZERO(&descriptors);
+        for (unsigned int i = 0; i < num; i++)
+            FD_SET(fd[i], &descriptors);
+        if (select(sel_fd, &descriptors, NULL, NULL, NULL) > 0) {
+            for (unsigned int i = 0; i < num; i++)
+                if (FD_ISSET(fd[i], &descriptors)) {
+                    if (read(fd[i], &ev, sizeof(struct input_event)) > 0)
+                        handle_event(&ev);
                     else
-                        printf("? (%u)\n", ev.code);
-                    if (ev.code == KEY_ESC)
                         running = false;
                 }
-                continue;
-            }
-
-            if (!care_for[ev.code])
-                continue;
-
-            if (ev.value == VA_PRESS || ev.value == VA_REPEAT) {
-                hk = find_hotkey(modmask, ev.code);
-                if (hk != NULL) {
-                    if (system(hk->command) == -1)
-                        warn("failed to execute command: %s\n", hk->command);
-                } else if (ev.value == VA_PRESS && mod_key_from_keycode(ev.code, &m)) {
-                    modmask |= m.modval;
-                }
-            } else if (ev.value == VA_RELEASE) {
-                if (mod_key_from_keycode(ev.code, &m))
-                    modmask &= ~m.modval;
-            }
+        } else {
+            running = false;
         }
     }
 
-    close(fd);
+    for (unsigned int i = 0; i < num; i++)
+        close(fd[i]);
     cleanup();
     return EXIT_SUCCESS;
 }

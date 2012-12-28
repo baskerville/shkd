@@ -145,6 +145,8 @@ int main(int argc, char *argv[])
                         printf("%s (%u)\n", k.name, k.keycode);
                     else if (mod_key_from_keycode(ev.code, &m))
                         printf("%s (%u)\n", m.name, m.keycode);
+                    else
+                        printf("? (%u)\n", ev.code);
                     if (ev.code == KEY_ESC)
                         running = false;
                 }

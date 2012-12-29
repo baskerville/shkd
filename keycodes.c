@@ -396,15 +396,15 @@ reg_key_t reg_dict[] = {
 };
 
 mod_key_t mod_dict[] = {
-    {"shift", KEY_LEFTSHIFT , 1<<0},
-    {"shift", KEY_RIGHTSHIFT, 1<<0},
-    {"ctrl" , KEY_LEFTCTRL  , 1<<1},
-    {"ctrl" , KEY_RIGHTCTRL , 1<<1},
-    {"alt"  , KEY_LEFTALT   , 1<<2},
-    {"alt"  , KEY_RIGHTALT  , 1<<2},
-    {"meta" , KEY_LEFTMETA  , 1<<3},
-    {"meta" , KEY_RIGHTMETA , 1<<3},
-    {"fn"   , KEY_FN        , 1<<4}
+    {"shift", KEY_LEFTSHIFT , 1<<1},
+    {"shift", KEY_RIGHTSHIFT, 1<<1},
+    {"ctrl" , KEY_LEFTCTRL  , 1<<2},
+    {"ctrl" , KEY_RIGHTCTRL , 1<<2},
+    {"alt"  , KEY_LEFTALT   , 1<<3},
+    {"alt"  , KEY_RIGHTALT  , 1<<3},
+    {"meta" , KEY_LEFTMETA  , 1<<4},
+    {"meta" , KEY_RIGHTMETA , 1<<4},
+    {"fn"   , KEY_FN        , 1<<5}
 };
 
 bool reg_key_from_name(const char *n, reg_key_t *k)

@@ -429,15 +429,21 @@ bool reg_key_from_keycode(unsigned short c, reg_key_t *k)
     return false;
 }
 
-bool mod_key_from_name(const char *n, mod_key_t *k)
+bool mod_key_from_name(const char *n, mod_key_t *k, bool *cf)
 {
+    unsigned int m = 0;
+
     for (unsigned int i = 0; i < LENGTH(mod_dict); i++)
         if (strcmp(mod_dict[i].name, n) == 0) {
             *k = mod_dict[i];
-            return true;
+            cf[mod_dict[i].keycode] = true;
+            m++;
         }
 
-    return false;
+    if (m > 0)
+        return true;
+    else
+        return false;
 }
 
 bool mod_key_from_keycode(unsigned short c, mod_key_t *k)

@@ -49,7 +49,7 @@ void load_config(void)
 
     FILE *cfg = fopen((config_file == NULL ? CONFIG_FILE : config_file), "r");
     if (cfg == NULL)
-        err("can't open configuration file");
+        err("can't open configuration file\n");
 
     char line[BUFSIZ];
     reg_key_t rk;
@@ -85,8 +85,7 @@ void load_config(void)
                 if (reg_key_from_name(name, &rk)) {
                     care_for[rk.keycode] = true;
                     keycode = rk.keycode;
-                } else if (mod_key_from_name(name, &mk)) {
-                    care_for[mk.keycode] = true;
+                } else if (mod_key_from_name(name, &mk, care_for)) {
                     moma |= mk.modval;
                 }
             } while ((name = strtok(NULL, TOK_SEP)) != NULL);

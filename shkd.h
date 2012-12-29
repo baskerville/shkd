@@ -32,13 +32,13 @@ typedef struct {
 hotkey_t *hotkeys;
 char *config_file;
 bool care_for[KEY_CNT];
-bool test_mode, running;
+bool running, test_mode, reload;
 
 unsigned char modmask;
-reg_key_t rk;
-mod_key_t mk;
+reg_key_t reg_key;
+mod_key_t mod_key;
 
-void stop(int);
+void hold(int);
 void init(void);
 void cleanup(void);
 void load_config(void);

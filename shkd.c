@@ -14,18 +14,18 @@
 #include "keycodes.h"
 #include "shkd.h"
 
-void stop(int sig)
+void hold(int sig)
 {
     if (sig == SIGHUP || sig == SIGINT || sig == SIGTERM)
         running = false;
+    else if (sig == SIGUSR1)
+        reload = true;
 }
 
 void init(void)
 {
-    config_file = NULL;
     hotkeys = NULL;
     modmask = 0;
-    running = true;
     for (unsigned int i = 0; i < LENGTH(care_for); i++)
         care_for[i] = false;
 }
@@ -42,14 +42,19 @@ void cleanup(void)
 
 void load_config(void)
 {
+    if (hotkeys != NULL) {
+        cleanup();
+        init();
+    }
+
     FILE *cfg = fopen((config_file == NULL ? CONFIG_FILE : config_file), "r");
     if (cfg == NULL)
         err("can't open configuration file");
 
     char line[BUFSIZ];
-    reg_key_t k;
-    mod_key_t m;
-    unsigned char modmask = 0;
+    reg_key_t rk;
+    mod_key_t mk;
+    unsigned char moma = 0;
     unsigned short keycode = KEY_RESERVED;
 
     while (fgets(line, sizeof(line), cfg) != NULL) {
@@ -66,23 +71,23 @@ void load_config(void)
                 i++;
             if (i < strlen(line)) {
                 char *command = line + i;
-                hotkey_t *hk = make_hotkey(modmask, keycode, command);
+                hotkey_t *hk = make_hotkey(moma, keycode, command);
                 hk->prev = hotkeys;
                 hotkeys = hk;
             }
-            modmask = 0;
+            moma = 0;
             keycode = KEY_RESERVED;
         } else {
             char *name = strtok(line, TOK_SEP);
             if (name == NULL)
                 continue;
             do {
-                if (reg_key_from_name(name, &k)) {
-                    care_for[k.keycode] = true;
-                    keycode = k.keycode;
-                } else if (mod_key_from_name(name, &m)) {
-                    care_for[m.keycode] = true;
-                    modmask |= m.modval;
+                if (reg_key_from_name(name, &rk)) {
+                    care_for[rk.keycode] = true;
+                    keycode = rk.keycode;
+                } else if (mod_key_from_name(name, &mk)) {
+                    care_for[mk.keycode] = true;
+                    moma |= mk.modval;
                 }
             } while ((name = strtok(NULL, TOK_SEP)) != NULL);
         }
@@ -97,10 +102,10 @@ void handle_event(struct input_event *ev)
         if (test_mode) {
             if (ev->value == VA_PRESS)
             {
-                if (reg_key_from_keycode(ev->code, &rk))
-                    printf("%s (%u)\n", rk.name, rk.keycode);
-                else if (mod_key_from_keycode(ev->code, &mk))
-                    printf("%s (%u)\n", mk.name, mk.keycode);
+                if (reg_key_from_keycode(ev->code, &reg_key))
+                    printf("%s (%u)\n", reg_key.name, reg_key.keycode);
+                else if (mod_key_from_keycode(ev->code, &mod_key))
+                    printf("%s (%u)\n", mod_key.name, mod_key.keycode);
                 else
                     printf("? (%u)\n", ev->code);
                 if (ev->code == KEY_ESC)
@@ -117,12 +122,12 @@ void handle_event(struct input_event *ev)
             if (hk != NULL) {
                 if (system(hk->command) == -1)
                     warn("failed to execute command: %s\n", hk->command);
-            } else if (ev->value == VA_PRESS && mod_key_from_keycode(ev->code, &mk)) {
-                modmask |= mk.modval;
+            } else if (ev->value == VA_PRESS && mod_key_from_keycode(ev->code, &mod_key)) {
+                modmask |= mod_key.modval;
             }
         } else if (ev->value == VA_RELEASE) {
-            if (mod_key_from_keycode(ev->code, &mk))
-                modmask &= ~mk.modval;
+            if (mod_key_from_keycode(ev->code, &mod_key))
+                modmask &= ~mod_key.modval;
         }
     }
 }
@@ -130,6 +135,7 @@ void handle_event(struct input_event *ev)
 int main(int argc, char *argv[])
 {
     test_mode = false;
+    config_file = NULL;
     char opt;
 
     while ((opt = getopt(argc, argv, "vhtc:")) != -1) {
@@ -168,9 +174,10 @@ int main(int argc, char *argv[])
 
     sel_fd = max_fd + 1;
 
-    signal(SIGINT, stop);
-    signal(SIGHUP, stop);
-    signal(SIGTERM, stop);
+    signal(SIGINT, hold);
+    signal(SIGHUP, hold);
+    signal(SIGTERM, hold);
+    signal(SIGUSR1, hold);
 
     init();
     if (!test_mode)
@@ -178,6 +185,9 @@ int main(int argc, char *argv[])
 
     fd_set descriptors;
     struct input_event ev;
+
+    reload = false;
+    running = true;
 
     while (running) {
         FD_ZERO(&descriptors);
@@ -191,8 +201,13 @@ int main(int argc, char *argv[])
                     else
                         running = false;
                 }
-        } else {
-            running = false;
+        }
+        if (reload) {
+            reload = false;
+            signal(SIGUSR1, hold);
+            if (test_mode)
+                continue;
+            load_config();
         }
     }
 

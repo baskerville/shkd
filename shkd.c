@@ -5,11 +5,13 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/select.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <ctype.h>
 #include <getopt.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <errno.h>
 #include "helpers.h"
 #include "keycodes.h"
 #include "shkd.h"
@@ -38,6 +40,40 @@ void cleanup(void)
         free(hk);
         hk = tmp;
     }
+}
+
+/* http://lubutu.com/code/spawning-in-unix */
+int spawnv(const char *file, char *const argv[])
+{
+    int fd[2];
+    if (pipe(fd) == -1)
+        return -1;
+    switch(fork()) {
+        case 0:
+            switch (fork()) {
+                case 0:
+                    close(fd[0]);
+                    if (fcntl(fd[1], F_SETFD, FD_CLOEXEC) == 0)
+                        execvp(file, argv);
+                    /* fallthrough */
+                case -1:
+                    write(fd[1], &errno, sizeof errno);
+                    exit(EXIT_FAILURE);
+            }
+            exit(EXIT_SUCCESS);
+        case -1:
+            close(fd[0]);
+            close(fd[1]);
+            return -1;
+    }
+    wait(NULL);
+    close(fd[1]);
+    if (read(fd[0], &errno, sizeof errno)) {
+        close(fd[0]);
+        return -1;
+    }
+    close(fd[0]);
+    return 0;
 }
 
 void load_config(void)
@@ -119,7 +155,8 @@ void handle_event(struct input_event *ev)
         if (ev->value == VA_PRESS || ev->value == VA_REPEAT) {
             hotkey_t *hk = find_hotkey(modmask, ev->code);
             if (hk != NULL) {
-                if (system(hk->command) == -1)
+                char *cmd[] = {SHELL, "-c", hk->command, NULL};
+                if (spawnv(cmd[0], cmd) == -1)
                     warn("failed to execute command: %s\n", hk->command);
             } else if (ev->value == VA_PRESS && mod_key_from_keycode(ev->code, &mod_key)) {
                 modmask |= mod_key.modval;

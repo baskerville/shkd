@@ -34,7 +34,7 @@ reg_key_t reg_dict[] = {
     {"p"               , KEY_P}               ,
     {"leftbracket"     , KEY_LEFTBRACE}       ,
     {"rightbracket"    , KEY_RIGHTBRACE}      ,
-    {"enter"           , KEY_ENTER}           ,
+    /* {"enter"           , KEY_ENTER}           , */
     {"a"               , KEY_A}               ,
     {"s"               , KEY_S}               ,
     {"d"               , KEY_D}               ,
@@ -60,7 +60,7 @@ reg_key_t reg_dict[] = {
     {"slash"           , KEY_SLASH}           ,
     {"kpasterisk"      , KEY_KPASTERISK}      ,
     {"space"           , KEY_SPACE}           ,
-    {"capslock"        , KEY_CAPSLOCK}        ,
+    /* {"capslock"        , KEY_CAPSLOCK}        , */
     {"f1"              , KEY_F1}              ,
     {"f2"              , KEY_F2}              ,
     {"f3"              , KEY_F3}              ,
@@ -125,7 +125,7 @@ reg_key_t reg_dict[] = {
     {"hanguel"         , KEY_HANGUEL}         ,
     {"hanja"           , KEY_HANJA}           ,
     {"yen"             , KEY_YEN}             ,
-    {"compose"         , KEY_COMPOSE}         ,
+    {"compose"         , KEY_LEFTCTRL}         ,
     {"stop"            , KEY_STOP}            ,
     {"again"           , KEY_AGAIN}           ,
     {"props"           , KEY_PROPS}           ,
@@ -398,8 +398,8 @@ reg_key_t reg_dict[] = {
 mod_key_t mod_dict[] = {
     {"shift", KEY_LEFTSHIFT , 1<<1},
     {"shift", KEY_RIGHTSHIFT, 1<<1},
-    {"ctrl" , KEY_LEFTCTRL  , 1<<2},
-    {"ctrl" , KEY_RIGHTCTRL , 1<<2},
+    {"ctrl" , KEY_CAPSLOCK  , 1<<2},
+    {"ctrl" , KEY_ENTER     , 1<<2},
     {"alt"  , KEY_LEFTALT   , 1<<3},
     {"alt"  , KEY_RIGHTALT  , 1<<3},
     {"meta" , KEY_LEFTMETA  , 1<<4},

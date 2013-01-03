@@ -1,5 +1,5 @@
-#ifndef _LHKD_H
-#define _LHKD_H
+#ifndef _SHKD_H
+#define _SHKD_H
 
 #include <stdio.h>
 

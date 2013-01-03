@@ -1,8 +1,6 @@
 ## Description
 
-shkd is a simple hotkey daemon for Linux.
-
-It works in the console and in X.
+shkd is a simple hotkey daemon for the Linux console.
 
 ## Usage
 

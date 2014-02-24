@@ -2,11 +2,11 @@
 # shkd configuration
 #
 
-# brightnessup
-#     foo +1
+brightnessup
+    foo +1
 
-# volumedown
-#     bar -1
+volumedown
+    bar -1
 
-# meta + alt + shift + ctrl + zenkakuhankaku
-#     baz --quux /foo/bar
+meta + alt + shift + ctrl + zenkakuhankaku
+    baz --quux /foo/bar

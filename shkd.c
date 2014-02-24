@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
 {
     test_mode = false;
     config_file = NULL;
-    char opt;
+    int opt;
 
     while ((opt = getopt(argc, argv, "vhtc:")) != -1) {
         switch (opt) {

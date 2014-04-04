@@ -1,0 +1,1 @@
+SUBSYSTEM=="input", ENV{ID_INPUT_KEYBOARD}=="?*", ENV{.INPUT_CLASS}="kbd", TAG+="systemd", ENV{SYSTEMD_WANTS}+="shkd@%N.service"

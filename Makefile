@@ -41,24 +41,27 @@ clean:
 	@rm -f $(OBJ) shkd
 
 install:
-	@echo "installing executable files to $(DESTDIR)$(BINPREFIX)"
+	@echo "installing executable files to $(DESTDIR)$(BINPREFIX)/shkd"
 	@install -D -m 755 shkd $(DESTDIR)$(BINPREFIX)/shkd
-	@echo "installing manual page to $(DESTDIR)$(MANPREFIX)/man1"
+	@echo "installing manual page to $(DESTDIR)$(MANPREFIX)/man1/shkd.1"
 	@install -D -m 644 shkd.1 $(DESTDIR)$(MANPREFIX)/man1/shkd.1
-	@echo "installing configuration file to $(DESTDIR)/etc"
+	@echo "installing configuration file to $(DESTDIR)/etc/shkdrc"
 	@install -D -m 644 examples/shkdrc $(DESTDIR)/etc/shkdrc
-	@echo "installing systemd service file to $(DESTDIR)$(SYSDPREFIX)"
-	@sed "s#INPUT_DEVICE#$(INPUT_DEVICE)#;s#BIN_PREFIX#$(BINPREFIX)#" examples/shkd.service.template > examples/shkd.service
-	@install -D -m 644 examples/shkd.service $(DESTDIR)$(SYSDPREFIX)/shkd.service
+	@install -D -m 644 examples/98-shk-local.rules $(DESTDIR)/etc/udev/rules.d/98-shk-local.rules
+	@echo /etc/udev/rules.d/98-shk-local.rules is launching shkd on all kbd input devices
+	@echo "installing systemd service file to $(DESTDIR)$(SYSDPREFIX)/shkd@.service"
+	@sed "s#BIN_PREFIX#$(BINPREFIX)#" examples/shkd.service.template > examples/shkd@.service
+	@install -D -m 644 examples/shkd@.service $(DESTDIR)$(SYSDPREFIX)/shkd@.service
 
 uninstall:
-	@echo "removing executable files from $(DESTDIR)$(BINPREFIX)"
+	@echo "removing executable files from $(DESTDIR)$(BINPREFIX)/shkd"
 	@rm -f $(DESTDIR)$(BINPREFIX)/shkd
-	@echo "removing manual page from $(DESTDIR)$(MANPREFIX)/man1"
+	@echo "removing manual page from $(DESTDIR)$(MANPREFIX)/man1/shkd.1"
 	@rm -f $(DESTDIR)$(MANPREFIX)/man1/shkd.1
-	@echo "removing configuration file from $(DESTDIR)/etc"
+	@echo "removing configuration file from $(DESTDIR)/etc/shkdrc"
 	@rm -f $(DESTDIR)/etc/shkdrc
-	@echo "removing systemd service file from $(DESTDIR)$(SYSDPREFIX)"
-	@rm -f $(DESTDIR)$(SYSDPREFIX)/shkd.service
+	@rm -f $(DESTDIR)/etc/udev/rules.d/98-shk-local.rules
+	@echo "removing systemd service file from $(DESTDIR)$(SYSDPREFIX)/shkd@.service"
+	@rm -f $(DESTDIR)$(SYSDPREFIX)/shkd@.service
 
 .PHONY: all debug options clean install uninstall

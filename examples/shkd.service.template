@@ -2,8 +2,7 @@
 Description=Simple HotKey Daemon
 
 [Service]
-Type=simple
-ExecStart=BIN_PREFIX/shkd INPUT_DEVICE
+ExecStart=BIN_PREFIX/shkd %I
 
 [Install]
 WantedBy=multi-user.target

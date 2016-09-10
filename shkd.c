@@ -164,6 +164,12 @@ void handle_event(struct input_event *ev)
         } else if (ev->value == VA_RELEASE) {
             if (mod_key_from_keycode(ev->code, &mod_key))
                 modmask &= ~mod_key.modval;
+            hotkey_t *hk = find_hotkey(modmask | RELEASE_MASK, ev->code);
+            if (hk != NULL) {
+                char *cmd[] = {SHELL, "-c", hk->command, NULL};
+                if (spawnv(cmd[0], cmd) == -1)
+                    warn("failed to execute command: %s\n", hk->command);
+            }
         }
     }
 }

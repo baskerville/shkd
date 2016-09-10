@@ -10,6 +10,8 @@
 #define VA_PRESS    1
 #define VA_REPEAT   2
 
+#define RELEASE_MASK (1<<6)
+
 typedef struct hotkey_t hotkey_t;
 struct hotkey_t {
     unsigned char modmask;

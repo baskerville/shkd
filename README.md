@@ -29,7 +29,7 @@ Example:
     volumedown
         bar -1
 
-    meta + alt + shift + ctrl + zenkakuhankaku
+    meta + alt + shift + ctrl + release + zenkakuhankaku
         baz --quux /foo/bar
 
 ## Installation

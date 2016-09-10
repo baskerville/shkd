@@ -396,15 +396,16 @@ reg_key_t reg_dict[] = {
 };
 
 mod_key_t mod_dict[] = {
-    {"shift", KEY_LEFTSHIFT , 1<<1},
-    {"shift", KEY_RIGHTSHIFT, 1<<1},
-    {"ctrl" , KEY_LEFTCTRL  , 1<<2},
-    {"ctrl" , KEY_RIGHTCTRL , 1<<2},
-    {"alt"  , KEY_LEFTALT   , 1<<3},
-    {"alt"  , KEY_RIGHTALT  , 1<<3},
-    {"meta" , KEY_LEFTMETA  , 1<<4},
-    {"meta" , KEY_RIGHTMETA , 1<<4},
-    {"fn"   , KEY_FN        , 1<<5}
+    {"shift"  , KEY_LEFTSHIFT , 1<<1},
+    {"shift"  , KEY_RIGHTSHIFT, 1<<1},
+    {"ctrl"   , KEY_LEFTCTRL  , 1<<2},
+    {"ctrl"   , KEY_RIGHTCTRL , 1<<2},
+    {"alt"    , KEY_LEFTALT   , 1<<3},
+    {"alt"    , KEY_RIGHTALT  , 1<<3},
+    {"meta"   , KEY_LEFTMETA  , 1<<4},
+    {"meta"   , KEY_RIGHTMETA , 1<<4},
+    {"fn"     , KEY_FN        , 1<<5},
+    {"release", 0             , RELEASE_MASK}
 };
 
 bool reg_key_from_name(const char *n, reg_key_t *k)
@@ -457,20 +458,28 @@ bool mod_key_from_keycode(unsigned short c, mod_key_t *k)
     return false;
 }
 
-hotkey_t *find_hotkey(unsigned char modmask, unsigned short keycode)
+hotkey_t *find_hotkey(unsigned char modmask, unsigned short keycode, const char* mode)
 {
     for (hotkey_t *hk = hotkeys; hk != NULL; hk = hk->prev)
-        if (hk->modmask == modmask && hk->keycode == keycode)
+        if (hk->modmask == modmask && hk->keycode == keycode &&
+            (!hk->mode || /* key is global, or else mode is set and matches */
+            (mode && !strcmp(hk->mode, mode)))) {
             return hk;
+        }
     return NULL;
 }
 
-hotkey_t *make_hotkey(unsigned char modmask, unsigned short keycode, char *command)
+hotkey_t *make_hotkey(unsigned char modmask, unsigned short keycode,
+    const char* mode, const char* next_mode, const char *command)
 {
     hotkey_t *hk = malloc(sizeof(hotkey_t));
     hk->prev = NULL;
     hk->modmask = modmask;
     hk->keycode = keycode;
+
+    hk->mode = mode ? strdup(mode) : NULL;
+    hk->next_mode = next_mode ? strdup(next_mode) : NULL;
+
     strncpy(hk->command, command, sizeof(hk->command));
     return hk;
 }

@@ -28,6 +28,7 @@ void init(void)
 {
     hotkeys = NULL;
     modmask = 0;
+    current_mode = NULL;
     for (unsigned int i = 0; i < LENGTH(care_for); i++)
         care_for[i] = false;
 }
@@ -92,6 +93,8 @@ void load_config(void)
     mod_key_t mk;
     unsigned char moma = 0;
     unsigned short keycode = KEY_RESERVED;
+    char *mode = NULL;
+    char *next_mode = NULL;
 
     while (fgets(line, sizeof(line), cfg) != NULL) {
         if (strlen(line) == 1 || line[0] == '#') {
@@ -99,15 +102,35 @@ void load_config(void)
         } else if (isspace(line[0])) {
             if (keycode == KEY_RESERVED)
                 continue;
+
+            /* trim whitespace from line */
             unsigned int i = strlen(line) - 1;
             while (i > 0 && isspace(line[i]))
                 line[i--] = '\0';
             i = 1;
-            while (i < strlen(line) && isspace(line[i]))
+            while (isspace(line[i]))
                 i++;
+
+            /* parse new mode */
+            unsigned int next_space = i;
+            while (line[next_space] && !isspace(line[next_space]))
+                next_space++;
+            if (line[i]=='-' && line[i+1] == '>' && line[i+2] == '[' && line[next_space-1] == ']') {
+                next_mode = strdup(&line[i+3]);
+                next_mode[(next_space-i)-4] = '\0';
+                /* skip over the new mode and any whitespace */
+                i=next_space;
+                while (isspace(line[i]))
+                    i++;
+            } else {
+                free(next_mode);
+                next_mode = NULL;
+            }
+
+            /* save the command */
             if (i < strlen(line)) {
                 char *command = line + i;
-                hotkey_t *hk = make_hotkey(moma, keycode, command);
+                hotkey_t *hk = make_hotkey(moma, keycode, mode, next_mode, command);
                 hk->prev = hotkeys;
                 hotkeys = hk;
             }
@@ -117,6 +140,19 @@ void load_config(void)
             char *name = strtok(line, TOK_SEP);
             if (name == NULL)
                 continue;
+
+            size_t namelen = strlen(name);
+
+            /* parse mode restriction */
+            if (name[0] == '[' && name[namelen-1] == ']') {
+                mode = strdup(&name[1]);
+                mode[namelen-2] = '\0';
+            } else {
+                free(mode);
+                mode = NULL;
+            }
+
+            /* parse modifiers and key */
             do {
                 if (reg_key_from_name(name, &rk)) {
                     care_for[rk.keycode] = true;
@@ -152,24 +188,33 @@ void handle_event(struct input_event *ev)
         if (!care_for[ev->code])
             return;
 
-        if (ev->value == VA_PRESS || ev->value == VA_REPEAT) {
-            hotkey_t *hk = find_hotkey(modmask, ev->code);
+        if (ev->value == VA_PRESS || ev->value == VA_REPEAT || ev->value == VA_RELEASE) {
+            /* search for the hotkey */
+            hotkey_t *hk = NULL;
+            if (ev->value == VA_RELEASE) {
+                hk = find_hotkey(modmask | RELEASE_MASK, ev->code, current_mode);
+            } else {
+                hk = find_hotkey(modmask, ev->code, current_mode);
+            }
+
             if (hk != NULL) {
+                /* change mode if the hotkey specifies a new mode */
+                if (hk->next_mode != NULL) {
+                    current_mode = hk->next_mode;
+                }
+                /* run the hotkey's command */
                 char *cmd[] = {SHELL, "-c", hk->command, NULL};
                 if (spawnv(cmd[0], cmd) == -1)
                     warn("failed to execute command: %s\n", hk->command);
             } else if (ev->value == VA_PRESS && mod_key_from_keycode(ev->code, &mod_key)) {
                 modmask |= mod_key.modval;
             }
-        } else if (ev->value == VA_RELEASE) {
+        }
+
+        /* remove released modifiers from the current modmask */
+        if (ev->value == VA_RELEASE) {
             if (mod_key_from_keycode(ev->code, &mod_key))
                 modmask &= ~mod_key.modval;
-            hotkey_t *hk = find_hotkey(modmask | RELEASE_MASK, ev->code);
-            if (hk != NULL) {
-                char *cmd[] = {SHELL, "-c", hk->command, NULL};
-                if (spawnv(cmd[0], cmd) == -1)
-                    warn("failed to execute command: %s\n", hk->command);
-            }
         }
     }
 }

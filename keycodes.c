@@ -458,20 +458,28 @@ bool mod_key_from_keycode(unsigned short c, mod_key_t *k)
     return false;
 }
 
-hotkey_t *find_hotkey(unsigned char modmask, unsigned short keycode)
+hotkey_t *find_hotkey(unsigned char modmask, unsigned short keycode, const char* mode)
 {
     for (hotkey_t *hk = hotkeys; hk != NULL; hk = hk->prev)
-        if (hk->modmask == modmask && hk->keycode == keycode)
+        if (hk->modmask == modmask && hk->keycode == keycode &&
+            (!hk->mode || /* key is global, or else mode is set and matches */
+            (mode && !strcmp(hk->mode, mode)))) {
             return hk;
+        }
     return NULL;
 }
 
-hotkey_t *make_hotkey(unsigned char modmask, unsigned short keycode, char *command)
+hotkey_t *make_hotkey(unsigned char modmask, unsigned short keycode,
+    const char* mode, const char* next_mode, const char *command)
 {
     hotkey_t *hk = malloc(sizeof(hotkey_t));
     hk->prev = NULL;
     hk->modmask = modmask;
     hk->keycode = keycode;
+
+    hk->mode = mode ? strdup(mode) : NULL;
+    hk->next_mode = next_mode ? strdup(next_mode) : NULL;
+
     strncpy(hk->command, command, sizeof(hk->command));
     return hk;
 }

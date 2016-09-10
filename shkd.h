@@ -16,6 +16,8 @@ typedef struct hotkey_t hotkey_t;
 struct hotkey_t {
     unsigned char modmask;
     unsigned short keycode;
+    char* mode;
+    char* next_mode;
     char command[BUFSIZ];
     hotkey_t *prev;
 };
@@ -36,6 +38,7 @@ char *config_file;
 bool care_for[KEY_CNT];
 bool running, test_mode, reload;
 
+const char *current_mode;
 unsigned char modmask;
 reg_key_t reg_key;
 mod_key_t mod_key;

@@ -2,6 +2,18 @@
 # shkd configuration
 #
 
+[mode1] =272
+    ->[mode2] echo left-press in mode1
+
+=272 + release
+    ->[mode1] echo left-release
+
+=273
+    echo right-press
+
+=273 + release
+    echo right-release
+
 brightnessup
     foo +1
 

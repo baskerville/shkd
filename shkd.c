@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
     int fd[num], sel_fd, max_fd = 0;
 
     for (unsigned int i = 0; i < num; i++) {
-        fd[i] = open(input_device[i], O_RDONLY);
+        fd[i] = open(input_device[i], O_RDONLY|O_CLOEXEC);
         if (fd[i] == -1)
             err("can't open input device %s\n", input_device[i]);
         else if (fd[i] > max_fd)

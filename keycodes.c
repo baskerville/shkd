@@ -410,6 +410,18 @@ mod_key_t mod_dict[] = {
 
 bool reg_key_from_name(const char *n, reg_key_t *k)
 {
+    /* parse =xxx as an integer keycode */
+    if (n[0] == '=') {
+        int code = 0;
+        if (sscanf(&n[1], "%d", &code) == 1) {
+            *k = (reg_key_t){"", code};
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /* search for the key name */
     for (unsigned int i = 0; i < LENGTH(reg_dict); i++)
         if (strcmp(reg_dict[i].name, n) == 0) {
             *k = reg_dict[i];
